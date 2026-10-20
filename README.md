@@ -1,7 +1,9 @@
 <!-- readme-sync:repo:start -->
+
 # unclutter
 
 WXT browser extension: Jev\-powered page clutter removal with reusable template rules\.
+
 <!-- readme-sync:repo:end -->
 
 <!-- readme-sync:header:start -->
@@ -11,7 +13,6 @@ WXT browser extension: Jev\-powered page clutter removal with reusable template 
   <a href="https://kitze.io/?ref=kitze%2Funclutter">kitze.io</a> · <a href="https://x.com/thekitze?ref=kitze%2Funclutter">X</a> · <a href="https://youtube.com/kitze?ref=kitze%2Funclutter">YouTube</a>
 </p>
 <br clear="all">
-
 
 <h3>More projects by Kitze</h3>
 <table>
@@ -89,12 +90,14 @@ WXT browser extension: Jev\-powered page clutter removal with reusable template 
 
 WXT extension for Chrome / Chromium and Firefox. Jev classifies nonessential page elements through Vercel AI Gateway or TypeSafe AI directly; the extension stores and reapplies local hiding rules by page template.
 
+This fork adds stronger local filtering of candidate snippets before AI requests and a local repository secrets check. The original project is [kitze/unclutter](https://github.com/kitze/unclutter).
+
 ## Install from source
 
 Requires [Bun](https://bun.sh) and Node.js 22.12 or newer.
 
 ```sh
-git clone https://github.com/kitze/unclutter.git
+git clone https://github.com/Taibr/unclutter.git
 cd unclutter
 bun install --frozen-lockfile
 bun run build
@@ -144,7 +147,10 @@ This is a conservative heuristic, not perfect template recognition. Different ro
 
 - API key stays in local extension storage, **not encrypted** and not synced. Chrome restricts storage access to trusted extension contexts. It is never sent to page content scripts, websites, logs, or repository source.
 - Only extension background code calls the selected provider's fixed endpoint. Popup-origin checks protect settings/manual analysis. Page-visit requests are validated and require the user's saved automatic-mode opt-in.
-- Each analysis sends up to 60 bounded candidate descriptions (tag, structural signals, short text, position, match count). No full URL, query string, page title, main article body, form values, cookies, or raw HTML is sent. Email-like and long numeric strings in snippets are redacted, but this is **not a guarantee of anonymization**. Do not analyze sensitive pages if sending snippets to your selected provider is inappropriate.
+- Each analysis sends up to 60 bounded candidate descriptions (tag, structural signals, short text, position, match count). The extension does not deliberately collect full URLs, query strings, page titles, main article bodies, form values, browser cookies, or raw HTML for these requests. Candidate text can still contain private information copied into an overlay or its attributes.
+- The same deterministic local filter runs during collection and again at the outbound request boundary, before text/signals are shortened to 450/300 characters. Shortening drops any token that would be cut at the limit instead of retaining its prefix. It removes recognized credential assignments, common GitHub/OpenAI/Slack/AWS keys, JWTs, Authorization/Bearer and Cookie headers, private-key blocks, connection URLs, emails, IPs, phone/long numeric identifiers, UUIDs and likely opaque tokens. The configured API key is also removed literally from candidate snippets; it is still required in the selected provider's Authorization header. Filtering neither edits the page nor changes local selectors.
+- Filtering is **not a guarantee of safety or anonymity**. Natural-language names, addresses, residual PII, unrecognized secret formats and encoded secrets can remain. Some legitimate identifiers may also be filtered. Use **Manual** mode on public pages and inspect the page before analyzing it; avoid sensitive, authenticated, medical, financial or private work pages whenever sending excerpts would be inappropriate. Automatic mode sends snippets on eligible visits after opt-in.
+- The chosen provider processes request snippets outside your browser and can associate requests with your API account and network/IP information; Gateway also adds its own processing route. Local filtering does not alter provider retention or account policies. API keys and saved extension data remain local and **unencrypted**; protect your browser profile and never publish it.
 - Jev receives typed keep/ad/promotion/newsletter/social/cookie/uncertain choices. Page text is untrusted evidence, not instructions. The model cannot emit code or selectors. Responses are validated for type, completeness, valid categories, and numeric ranges. Uncertain results remain visible. Where provided, selected-choice probability and TypeSafe confidence must **both** be at least 0.9; either failing keeps the element visible. Invalid/non-finite values reject the response. Gateway answers without confidence still work. These are conservative operational thresholds, not calibrated accuracy claims.
 - Main content, navigation, ordinary forms, login/payment/security, and paywalls are protected. Cookie-dialog headings and checkbox controls may hide with their containing overlay, but sensitive inputs still block hiding. No links are clicked, consent granted, requests blocked, or access restrictions bypassed. Hiding cookie dialogs is not rejection or tracking protection; use Pause to access consent choices. Hiding ads does not prevent their network/tracking activity.
 - Hidden DOM nodes are not deleted. A temporary attribute, extension-owned stylesheet, and reversible inline display overrides remove occupied space (including inline `!important`). Original style values/priorities are restored; unrelated site style changes are preserved.
@@ -163,6 +169,18 @@ bun run build:firefox
 
 Use `bun run dev` for WXT development mode. No background server is needed for unpacked production builds.
 
+Before pushing or publishing, stage the intended files and run the local check:
+
+```sh
+bun run secrets:check
+# Equivalent without Bun:
+node scripts/check-secrets.mjs
+```
+
+Install [Gitleaks](https://github.com/gitleaks/gitleaks) (8.30.1 or a compatible version supporting `git --pre-commit --staged`) on your PATH, or set `GITLEAKS_PATH` to the executable's full path. In PowerShell, for example: `$env:GITLEAKS_PATH = 'C:\Tools\gitleaks.exe'`. No hook is installed and no hosted workflow is required. The script uses the current directory's Git repository, rejects tracked credential/private-key/browser-profile artifacts even if force-added, and runs fully redacted Gitleaks scans over all local refs and the staged diff. Keep relevant remote refs fetched when preparing publication. Missing scanners, scan errors, findings and unborn repositories fail the check; diagnostics withhold file contents. Unstaged and untracked work is outside the staged scan, so stage the complete intended change and rerun before pushing.
+
+If a live secret is discovered, stop publication, revoke or rotate it with its issuer, remove it from the intended change, and assess all affected refs/history before retrying. Deleting a working file does not remove a committed secret. Coordinate any history repair with repository owners; never quietly rewrite shared upstream history. Ignore rules and scanner passes reduce accidental exposure but cannot prove that a repository contains no secrets.
+
 The normal checks use synthetic fixtures and need no API key. Optional live smoke test: set `JEV_KEY` or `TYPESAFE_API_KEY` for TypeSafe AI, **or** `AI_GATEWAY_API_KEY` for Gateway, then run `bun scripts/smoke-jev.ts`. Do not set both provider families; conflicting direct-key aliases are rejected too. Never pass a key as a command-line argument. The smoke sends synthetic inputs only and incurs a small API charge. Never commit `.env` files, API keys, browser profiles, or real browsing data.
 
 Outputs: `.output/chrome-mv3/` and `.output/firefox-mv2/`. `bun run zip` packages Chromium.
@@ -172,7 +190,6 @@ Architecture: `lib/page-context.ts` identifies templates, `lib/dom.ts` extracts 
 ## License
 
 [MIT](LICENSE).
-
 
 <!-- readme-sync:footer:start -->
 <hr>

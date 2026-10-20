@@ -1,4 +1,5 @@
 import type { Candidate, Rule } from "./model";
+import { sensitiveSnippet } from "./privacy";
 
 const structural = 'html,body,main,article,nav,[role="main"],[role="navigation"]';
 const sensitive =
@@ -79,13 +80,6 @@ function selectorFor(el: Element, doc: Document): string | null {
   return options.find((selector) => matchingElements(doc, selector).includes(el)) ?? null;
 }
 
-function redact(text: string): string {
-  return text
-    .replace(/https?:\/\/\S+/g, "[URL]")
-    .replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi, "[email]")
-    .replace(/\b(?:\d[ -]?){8,}\b/g, "[number]");
-}
-
 export function collectCandidates(doc: Document): Candidate[] {
   // Consent UI often arrives at the very end of body, after thousands of nodes.
   const priority = [
@@ -125,8 +119,8 @@ export function collectCandidates(doc: Document): Candidate[] {
       id: `e${output.length}`,
       selector,
       tag: el.tagName.toLowerCase(),
-      signals: redact(signals).slice(0, 300),
-      text: redact((copy.textContent ?? "").replace(/\s+/g, " ").trim()).slice(0, 450),
+      signals: sensitiveSnippet(signals, 300),
+      text: sensitiveSnippet(copy.textContent ?? "", 450),
       position,
       count: matchingElements(doc, selector).length,
     });

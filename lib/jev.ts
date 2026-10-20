@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { categories, type Candidate, type Rule, type Snapshot } from "./model";
 import type { Provider } from "./providers";
+import { redactSensitiveText } from "./privacy";
 
 export const ENDPOINT = "https://ai-gateway.vercel.sh/v4/ai/evaluation-model";
 export const TYPESAFE_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
@@ -12,7 +13,7 @@ const answerSchema = z.object({
 });
 const responseSchema = z.object({ answers: z.record(z.string(), answerSchema) });
 
-export function evaluationRequest(snapshot: Snapshot) {
+export function evaluationRequest(snapshot: Snapshot, secrets: readonly string[] = []) {
   return {
     state: {
       pageType: snapshot.context.kind,
@@ -20,8 +21,8 @@ export function evaluationRequest(snapshot: Snapshot) {
       elements: snapshot.candidates.map(({ id, tag, signals, text, position, count }) => ({
         id,
         tag,
-        signals,
-        text,
+        signals: redactSensitiveText(signals, secrets).slice(0, 300),
+        text: redactSensitiveText(text, secrets).slice(0, 450),
         position,
         count,
       })),
@@ -74,7 +75,7 @@ export function evaluationCall(
   provider: Provider = "vercel",
 ): { url: string; init: RequestInit } {
   const direct = provider === "typesafe";
-  const request = evaluationRequest(snapshot);
+  const request = evaluationRequest(snapshot, [key]);
   return {
     url: direct ? TYPESAFE_ENDPOINT : ENDPOINT,
     init: {

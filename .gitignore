@@ -6,5 +6,41 @@ node_modules/
 *.key
 *.p12
 *.pfx
+*.jks
+*.keystore
+.npmrc
+.pypirc
+.netrc
+_netrc
+.git-credentials
+.aws/
+.ssh/
+credentials
+credentials.json
+secret.json
+secrets.json
+secrets.yaml
+secrets.yml
+secrets.toml
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+browser-profile*/
+browser_profile*/
+chrome-profile*/
+chromium-profile*/
+firefox-profile*/
+user-data/
+user_data/
+Local Extension Settings/
+Session Storage/
+Local Storage/
+IndexedDB/
+Login Data
+Web Data
+Cookies
+History
+Local State
 *.log
 .DS_Store

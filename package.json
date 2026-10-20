@@ -18,6 +18,7 @@
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
     "test": "tsx --test tests/*.test.ts",
+    "secrets:check": "node scripts/check-secrets.mjs",
     "check": "bun run typecheck && bun run lint && bun run format:check && bun run test"
   },
   "dependencies": {

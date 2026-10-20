@@ -26,11 +26,14 @@ id_rsa*
 id_dsa*
 id_ecdsa*
 id_ed25519*
-browser-profile*/
-browser_profile*/
-chrome-profile*/
-chromium-profile*/
-firefox-profile*/
+browser[-_]profile*/
+browserprofile*/
+chrome[-_]profile*/
+chromeprofile*/
+chromium[-_]profile*/
+chromiumprofile*/
+firefox[-_]profile*/
+firefoxprofile*/
 user-data/
 user_data/
 Local Extension Settings/

@@ -1,5 +1,5 @@
 import type { Candidate, Rule } from "./model";
-import { redactSensitiveText } from "./privacy";
+import { sensitiveSnippet } from "./privacy";
 
 const structural = 'html,body,main,article,nav,[role="main"],[role="navigation"]';
 const sensitive =
@@ -119,11 +119,8 @@ export function collectCandidates(doc: Document): Candidate[] {
       id: `e${output.length}`,
       selector,
       tag: el.tagName.toLowerCase(),
-      signals: redactSensitiveText(signals).slice(0, 300),
-      text: redactSensitiveText(copy.textContent ?? "")
-        .replace(/\s+/g, " ")
-        .trim()
-        .slice(0, 450),
+      signals: sensitiveSnippet(signals, 300),
+      text: sensitiveSnippet(copy.textContent ?? "", 450),
       position,
       count: matchingElements(doc, selector).length,
     });

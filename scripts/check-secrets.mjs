@@ -29,7 +29,7 @@ const forbidden = (path) =>
   /(?:^|\/)(?:\.npmrc|\.pypirc|\.netrc|_netrc|\.git-credentials|credentials(?:\.json)?|secrets?\.(?:json|ya?ml|toml))$/i.test(
     path,
   ) ||
-  /(?:^|\/)(?:\.aws|\.ssh|browser[-_]?profiles?|chrome[-_]?profiles?|chromium[-_]?profiles?|firefox[-_]?profiles?|user[-_]?data)(?:\/|$)/i.test(
+  /(?:^|\/)(?:\.aws|\.ssh|(?:browser|chrome|chromium|firefox)[-_]?profiles?[^/]*|user[-_]?data)(?:\/|$)/i.test(
     path,
   ) ||
   /(?:^|\/)(?:Local Extension Settings|Session Storage|Local Storage|IndexedDB)(?:\/|$)/i.test(

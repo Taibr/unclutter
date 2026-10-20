@@ -152,6 +152,21 @@ test("request boundary strips a credential before field-length limits cut it in 
   assert.ok(element.signals.length <= 300);
 });
 
+test("collection never leaves a partial configured key for the outbound filter", () => {
+  const key = "fixture.[literal]+key?";
+  const prefix = "Advertisement ".padEnd(440, ".") + " ";
+  const dom = new JSDOM(
+    `<div class="ad-banner" aria-label="${"promotion ".padEnd(290, ".")} ${key}">${prefix}${key}</div>`,
+  );
+  const candidates = collectCandidates(dom.window.document);
+  const raw = snapshot("");
+  raw.candidates = candidates;
+  const body = String(evaluationCall(raw, key, "typesafe").init.body);
+  assert.ok(!body.includes("fixture."), "a cut-off key prefix must not escape literal filtering");
+  assert.ok(body.includes("Advertisement"));
+  assert.ok(dom.window.document.body.textContent!.includes(key));
+});
+
 test("fetch uses the filtered payload and response rules still map to original local selectors", async (t) => {
   const raw = snapshot(`Advertisement password=fixture-fetch-secret`);
   const replies = { answers: { e0: { type: "choice", choice: "ad", confidence: 0.99 } } };
@@ -195,6 +210,9 @@ test("repository check rejects tracked credential files even if gitignored", (t)
     "config/.env.production",
     "cert/private.pem",
     "browser-profile/Default/Local Extension Settings/key",
+    "browser-profile-smoke/Default/Preferences",
+    "chrome-profile-personal/Default/Preferences",
+    "firefox_profile_backup/prefs.js",
   ]) {
     const cwd = fixtureRepo(t);
     mkdirSync(resolve(cwd, file, ".."), { recursive: true });

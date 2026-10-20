@@ -1,5 +1,17 @@
 const replacement = "[redacted]";
 
+/** Bound snippets without retaining the prefix of a token cut by the limit. */
+export function sensitiveSnippet(
+  text: string,
+  limit: number,
+  secrets: readonly string[] = [],
+): string {
+  const clean = redactSensitiveText(text, secrets).replace(/\s+/g, " ").trim();
+  if (clean.length <= limit) return clean;
+  const clipped = clean.slice(0, limit);
+  return (/\S/.test(clean[limit]!) ? clipped.replace(/\S+$/, "") : clipped).trimEnd();
+}
+
 /** Best-effort local filtering, not anonymization of arbitrary page content. */
 export function redactSensitiveText(text: string, secrets: readonly string[] = []): string {
   // Format characters can invisibly split labels and tokens. Remove them before

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { categories, type Candidate, type Rule, type Snapshot } from "./model";
 import type { Provider } from "./providers";
-import { redactSensitiveText } from "./privacy";
+import { sensitiveSnippet } from "./privacy";
 
 export const ENDPOINT = "https://ai-gateway.vercel.sh/v4/ai/evaluation-model";
 export const TYPESAFE_ENDPOINT = "https://api.typesafe.ai/v1/systemone";
@@ -21,8 +21,8 @@ export function evaluationRequest(snapshot: Snapshot, secrets: readonly string[]
       elements: snapshot.candidates.map(({ id, tag, signals, text, position, count }) => ({
         id,
         tag,
-        signals: redactSensitiveText(signals, secrets).slice(0, 300),
-        text: redactSensitiveText(text, secrets).slice(0, 450),
+        signals: sensitiveSnippet(signals, 300, secrets),
+        text: sensitiveSnippet(text, 450, secrets),
         position,
         count,
       })),
